@@ -1,0 +1,71 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  USER
+  STUDENT
+  DRIVER
+  ADMIN
+}
+
+model User {
+  id           String   @id @default(uuid())
+  name         String
+  email        String   @unique
+  passwordHash String
+  role         Role     @default(USER)
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  tasks        Task[]
+  student      Student?
+  driver       Driver?
+  adminProfile AdminProfile?
+
+  @@map("users")
+}
+
+model Student {
+  id        String  @id @default(uuid())
+  userId    String  @unique
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  matricula String  @unique
+  curso     String?
+
+  @@map("students")
+}
+
+model Driver {
+  id           String  @id @default(uuid())
+  userId       String  @unique
+  user         User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  cnh          String  @unique
+  licensePlate String?
+
+  @@map("drivers")
+}
+
+model AdminProfile {
+  id     String  @id @default(uuid())
+  userId String  @unique
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  cargo  String?
+
+  @@map("admin_profiles")
+}
+
+model Task {
+  id     Int    @id @default(autoincrement())
+  titulo String
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  @@map("tasks")
+}
